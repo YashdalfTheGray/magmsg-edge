@@ -3,8 +3,9 @@ import ssl
 import wifi
 import socketpool
 import adafruit_requests
+import secrets
 
-# URLs to fetch from
+
 TEXT_URL = "http://wifitest.adafruit.com/testwifi/index.html"
 JSON_QUOTES_URL = "https://www.adafruit.com/api/quotes.php"
 JSON_STARS_URL = "https://api.github.com/repos/adafruit/circuitpython"
@@ -16,7 +17,15 @@ except ImportError:
     print("WiFi secrets are kept in secrets.py, please add them there!")
     raise
 
-print("ESP32-S2 WebClient Test")
+# Get our username, key and desired timezone
+aio_username = secrets["aio_username"]
+aio_key = secrets["aio_key"]
+location = secrets.get("timezone", None)
+TIME_URL = "https://io.adafruit.com/api/v2/%s/integrations/time/strftime?x-aio-key=%s" % (
+    aio_username, aio_key)
+TIME_URL += "&fmt=%25Y-%25m-%25d+%25H%3A%25M%3A%25S.%25L+%25j+%25u+%25z+%25Z"
+
+print("ESP32-S2 Adafruit IO Time test")
 
 print("My MAC addr:", [hex(i) for i in wifi.radio.mac_address])
 
@@ -37,24 +46,8 @@ print("Ping google.com: %f ms" % wifi.radio.ping(ipv4))
 pool = socketpool.SocketPool(wifi.radio)
 requests = adafruit_requests.Session(pool, ssl.create_default_context())
 
-print("Fetching text from", TEXT_URL)
-response = requests.get(TEXT_URL)
+print("Fetching text from", TIME_URL)
+response = requests.get(TIME_URL)
 print("-" * 40)
 print(response.text)
 print("-" * 40)
-
-print("Fetching json from", JSON_QUOTES_URL)
-response = requests.get(JSON_QUOTES_URL)
-print("-" * 40)
-print(response.json())
-print("-" * 40)
-
-print()
-
-print("Fetching and parsing json from", JSON_STARS_URL)
-response = requests.get(JSON_STARS_URL)
-print("-" * 40)
-print("CircuitPython GitHub Stars", response.json()["stargazers_count"])
-print("-" * 40)
-
-print("done")
