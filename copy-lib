@@ -1,0 +1,52 @@
+#!/usr/bin/env python3
+
+import sys
+import getopt
+
+help_message = """
+copy-lib <mode> -f <location_of_adafruit_libraries> -l <json_list_of_libraries>
+
+Options:
+  - -s --stage\t\tcopy the desired libraries to the project folder
+  - -d --deploy\t\tcopy the desired libraries to the CIRCUITPY volume
+  - -f, --from-location\tthe location of the downloaded Adafruit libraries bundle
+  - -l, --library-list\ta JSON file containing a list of desired libraries
+
+To copy into the `lib` directory of the current directory, use `--stage` or `-s`.
+To copy into the `lib` directory of the CIRCUITPY volume, use `--deploy` or `-d`.
+"""
+
+
+def main(argv):
+    from_location = ""
+    selected_libraries = ""
+    mode = "stage"
+
+    try:
+        opts, args = getopt.getopt(
+            argv, "hsdf:l:", [
+                "help", "stage", "deploy", "from-location=", "library-list="
+            ]
+        )
+    except getopt.GetoptError:
+        print("copy-lib -s -f <location_of_adafruit_bundle> -l <json_list_of_libraries>")
+        sys.exit(2)
+
+    for opt, arg in opts:
+        if opt in ("-h", "--help"):
+            print(help_message)
+            sys.exit()
+        elif opt in ("-f", "--from-location"):
+            from_location = arg
+        elif opt in ("-l", "--library-list"):
+            selected_libraries = arg
+        elif opt in ("-d", "--deploy"):
+            mode = "deploy"
+
+    print(
+        f"The location is {from_location} and the library list is {selected_libraries}"
+    )
+
+
+if __name__ == "__main__":
+    main(sys.argv[1:])
