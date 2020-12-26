@@ -1,13 +1,15 @@
-import time
 import board
 import busio
-from digitalio import DigitalInOut
+import neopixel
+import time
+import adafruit_esp32spi.adafruit_esp32spi_socket as socket
+import adafruit_minimqtt.adafruit_minimqtt as MQTT
+
 from adafruit_esp32spi import adafruit_esp32spi
 from adafruit_esp32spi import adafruit_esp32spi_wifimanager
-import adafruit_esp32spi.adafruit_esp32spi_socket as socket
-import neopixel
-import adafruit_minimqtt.adafruit_minimqtt as MQTT
+from adafruit_magtag.magtag import MagTag
 from adafruit_io.adafruit_io import IO_MQTT
+from digitalio import DigitalInOut
 
 # load secrets
 try:
@@ -16,8 +18,8 @@ except ImportError:
     print("WiFi secrets are kept in secrets.py, please add them there!")
     raise
 
-
 # setup pins and hardware
+magtag = MagTag()
 esp32_cs = DigitalInOut(board.ESP_CS)
 esp32_ready = DigitalInOut(board.ESP_BUSY)
 esp32_reset = DigitalInOut(board.ESP_RESET)
@@ -90,6 +92,7 @@ io.get(feed_name)
 
 # loop looking for messages
 while True:
+    # try to get updates from adafruit.io
     try:
         io.loop()
     except (ValueError, RuntimeError) as e:
@@ -97,4 +100,12 @@ while True:
         wifi.reset()
         io.reconnect()
         continue
-    time.sleep(60)
+
+    # light up the screen if done in the dark
+    if magtag.peripherals.button_b_pressed:
+        magtag.peripherals.neopixel_disable = False
+        magtag.peripherals.neopixels.fill((255, 255, 255))
+    else:
+        magtag.peripherals.neopixel_disable = True
+
+    time.sleep(0.1)
