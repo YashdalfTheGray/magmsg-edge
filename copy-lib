@@ -2,6 +2,8 @@
 
 import sys
 import getopt
+import json
+import shutil
 
 help_message = """
 copy-lib <mode> -f <location_of_adafruit_libraries> -l <json_list_of_libraries>
@@ -15,6 +17,11 @@ Options:
 To copy into the `lib` directory of the current directory, use `--stage` or `-s`.
 To copy into the `lib` directory of the CIRCUITPY volume, use `--deploy` or `-d`.
 """
+
+
+def load_json_list(path):
+    with open(path) as json_file:
+        return json.load(json_file)
 
 
 def main(argv):
@@ -43,9 +50,9 @@ def main(argv):
         elif opt in ("-d", "--deploy"):
             mode = "deploy"
 
-    print(
-        f"The location is {from_location} and the library list is {selected_libraries}"
-    )
+    libraries_list = load_json_list(selected_libraries)
+    print(json.dumps(libraries_list, indent=2))
+    shutil.copytree(f"{from_location}/lib/{libraries_list[0]}", "./testlib")
 
 
 if __name__ == "__main__":
