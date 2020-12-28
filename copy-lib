@@ -4,6 +4,7 @@ import sys
 import getopt
 import json
 import shutil
+import os
 
 help_message = """
 copy-lib <mode> -f <location_of_adafruit_libraries> -l <json_list_of_libraries>
@@ -52,7 +53,19 @@ def main(argv):
 
     libraries_list = load_json_list(selected_libraries)
     print(json.dumps(libraries_list, indent=2))
-    shutil.copytree(f"{from_location}/lib/{libraries_list[0]}", "./testlib")
+
+    os.mkdir('./testlib')
+
+    library_path = f"{from_location}/lib/{libraries_list[len(libraries_list) - 1]}"
+    destination_path = f"./testlib/{libraries_list[len(libraries_list) - 1]}"
+
+    if os.path.isdir(library_path):
+        os.mkdir(destination_path)
+        shutil.copytree(library_path, destination_path)
+    elif os.path.isfile(library_path):
+        shutil.copy(library_path, './testlib/')
+    else:
+        print(f"Path {library_path} is neither a file nor a directory.")
 
 
 if __name__ == "__main__":
