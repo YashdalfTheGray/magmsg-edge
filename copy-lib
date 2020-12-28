@@ -56,11 +56,10 @@ def main(argv):
 
     os.mkdir('./testlib')
 
-    library_path = f"{from_location}/lib/{libraries_list[len(libraries_list) - 1]}"
-    destination_path = f"./testlib/{libraries_list[len(libraries_list) - 1]}"
+    library_path = f"{from_location}/lib/{libraries_list[0]}"
+    destination_path = f"./testlib/{libraries_list[0]}/"
 
     if os.path.isdir(library_path):
-        os.mkdir(destination_path)
         shutil.copytree(library_path, destination_path)
     elif os.path.isfile(library_path):
         shutil.copy(library_path, './testlib/')
