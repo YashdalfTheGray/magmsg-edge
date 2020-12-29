@@ -62,7 +62,12 @@ def main(argv):
             mode = Mode.DEPLOY
 
     libraries_list = load_json_list(selected_libraries)
-    destination_path_root = "./lib"
+    destination_path_root = "/Volumes/CIRCUITPY/lib" if mode == Mode.DEPLOY else "./lib"
+
+    if mode == Mode.DEPLOY and not os.path.isdir(path):
+        sys.exit("The volume CIRCUITPY wasn't found, can't copy libraries to MagTag.")
+
+    shutil.rmtree(destination_path_root, ignore_errors=True)
     os.mkdir(destination_path_root)
 
     for library in libraries_list:
