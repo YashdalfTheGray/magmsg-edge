@@ -11,6 +11,15 @@ from adafruit_magtag.magtag import MagTag
 from adafruit_io.adafruit_io import IO_MQTT
 from digitalio import DigitalInOut
 
+
+def lightup(magtag):
+    if magtag.peripherals.button_b_pressed:
+        magtag.peripherals.neopixel_disable = False
+        magtag.peripherals.neopixels.fill((255, 255, 255))
+    else:
+        magtag.peripherals.neopixel_disable = True
+
+
 # load secrets
 try:
     from secrets import secrets
