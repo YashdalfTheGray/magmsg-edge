@@ -12,10 +12,42 @@ from adafruit_io.adafruit_io import IO_MQTT
 from digitalio import DigitalInOut
 
 
+def get_battery_color(current_volts):
+    battery_min = 3.5
+    battery_max = 4.15
+    battery_range_top = battery_max - battery_min
+    third_of_battery_range = battery_range_top / 3.0
+    top_third_range_bottom = battery_range_top - third_of_battery_range
+
+    if (current_volts <= battery_min):
+        return (255, 0, 0)
+    elif (current_volts >= battery_max):
+        return (0, 255, 0)
+
+    if (((current_volts - battery_min) / battery_range_top) >= 0.67):
+        position_abs = current_volts - (battery_min + top_third_range_bottom)
+        position = position_abs / third_of_battery_range
+        return (int(255.0 - (255.0 * position)), 255, 0)
+    else:
+        position_abs = current_volts - battery_min
+        position = position_abs / top_third_range_bottom
+        return (255, int(255.0 * position), 0)
+
+
 def lightup(magtag):
     if magtag.peripherals.button_b_pressed:
         magtag.peripherals.neopixel_disable = False
         magtag.peripherals.neopixels.fill((255, 255, 255))
+    else:
+        magtag.peripherals.neopixel_disable = True
+
+
+def lightbattery(magtag):
+    if magtag.peripherals.button_c_pressed:
+        magtag.peripherals.neopixel_disable = False
+        magtag.peripherals.neopixels.fill(
+            get_battery_color(magtag.peripherals.battery)
+        )
     else:
         magtag.peripherals.neopixel_disable = True
 
