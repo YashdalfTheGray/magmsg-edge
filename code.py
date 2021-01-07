@@ -1,15 +1,12 @@
 import board
-import busio
-import neopixel
 import time
-import adafruit_esp32spi.adafruit_esp32spi_socket as socket
-import adafruit_minimqtt.adafruit_minimqtt as MQTT
+import ssl
+import wifi
+import socketpool
+import adafruit_requests
+import terminalio
 
-from adafruit_esp32spi import adafruit_esp32spi
-from adafruit_esp32spi import adafruit_esp32spi_wifimanager
 from adafruit_magtag.magtag import MagTag
-from adafruit_io.adafruit_io import IO_MQTT
-from digitalio import DigitalInOut
 
 
 def get_battery_color(current_volts):
@@ -34,119 +31,85 @@ def get_battery_color(current_volts):
         return (255, int(255.0 * position), 0)
 
 
-def lightup(magtag):
-    if magtag.peripherals.button_b_pressed:
+def handle_buttons(magtag, messages, message_index):
+    result = message_index
+
+    if magtag.peripherals.button_a_pressed:
+        if result > 0:
+            result = result - 1 if result >= 1 else 0
+            magtag.set_text(messages[result]["content"])
+        magtag.peripherals.neopixel_disable = True
+    elif magtag.peripherals.button_b_pressed:
         magtag.peripherals.neopixel_disable = False
         magtag.peripherals.neopixels.fill((255, 255, 255))
-    else:
-        magtag.peripherals.neopixel_disable = True
-
-
-def lightbattery(magtag):
-    if magtag.peripherals.button_c_pressed:
+    elif magtag.peripherals.button_c_pressed:
         magtag.peripherals.neopixel_disable = False
         magtag.peripherals.neopixels.fill(
             get_battery_color(magtag.peripherals.battery)
         )
+    elif magtag.peripherals.button_d_pressed:
+        if result < (len(messages) - 1):
+            result = result + \
+                1 if result <= (len(messages) - 2) else (len(messages) - 1)
+            magtag.set_text(messages[result]["content"])
+        magtag.peripherals.neopixel_disable = True
     else:
         magtag.peripherals.neopixel_disable = True
 
+    return result
 
-# load secrets
+
 try:
     from secrets import secrets
 except ImportError:
     print("WiFi secrets are kept in secrets.py, please add them there!")
     raise
 
-# setup pins and hardware
+auth_header = {
+    "Authorization": "Bearer " + secrets["server_token"]
+}
+
+print("Connecting to %s" % secrets["ssid"])
+wifi.radio.connect(secrets["ssid"], secrets["password"])
+print("Connected to %s!" % secrets["ssid"])
+print("My IP address is", wifi.radio.ipv4_address)
+
+pool = socketpool.SocketPool(wifi.radio)
+requests = adafruit_requests.Session(pool, ssl.create_default_context())
+
+
+response = requests.request(
+    "GET", secrets["server_address"], headers=auth_header)
+messages = response.json()
+print(messages)
+
 magtag = MagTag()
-esp32_cs = DigitalInOut(board.ESP_CS)
-esp32_ready = DigitalInOut(board.ESP_BUSY)
-esp32_reset = DigitalInOut(board.ESP_RESET)
-spi = busio.SPI(board.SCK, board.MOSI, board.MISO)
-esp = adafruit_esp32spi.ESP_SPIcontrol(spi, esp32_cs, esp32_ready, esp32_reset)
-status_light = neopixel.NeoPixel(board.NEOPIXEL, 1, brightness=0.2)
-wifi = adafruit_esp32spi_wifimanager.ESPSPI_WiFiManager(
-    esp, secrets, status_light
+
+magtag.add_text(
+    text_font="Arial-18.bdf",
+    text_position=(
+        20,
+        (magtag.graphics.display.height // 2) - 1,
+    ),
+    text_scale=1,
 )
 
-# setup IO callbacks for listening to a feed
+current_message_index = 0
+magtag.set_text(messages[current_message_index]["content"])
 
+buttons = magtag.peripherals.buttons
+button_colors = ((255, 0, 0), (255, 150, 0), (0, 255, 255), (180, 0, 255))
+timestamp = time.monotonic()
 
-def connected(client):
-    print("Connected to Adafruit IO!")
+counter = 0
 
-
-def subscribe(client, userdata, topic, granted_qos):
-    print("Listening for changes on relay feed...")
-
-
-def unsubscribe(client, userdata, topic, pid):
-    print("Unsubscribed from {0} with PID {1}".format(topic, pid))
-
-
-def disconnected(client):
-    print("Disconnected from Adafruit IO!")
-
-
-def on_message(client, feed_id, payload):
-    print("Feed {0} received new value: {1}".format(feed_id, payload))
-
-
-def on_feed_msg(client, topic, message):
-    print(message)
-
-
-# connect to WiFi
-print("Connecting to WiFi...")
-wifi.connect()
-print("Connected!")
-
-# initialize MQTT interface with the esp interface
-MQTT.set_socket(socket, esp)
-
-# initialize a new MQTT Client object
-mqtt_client = MQTT.MQTT(
-    broker="io.adafruit.com",
-    username=secrets["aio_username"],
-    password=secrets["aio_key"],
-)
-
-# Initialize an Adafruit IO MQTT Client
-io = IO_MQTT(mqtt_client)
-
-# connect the callback methods defined above to Adafruit IO
-io.on_connect = connected
-io.on_disconnect = disconnected
-io.on_subscribe = subscribe
-io.on_unsubscribe = unsubscribe
-io.on_message = on_message
-
-# connect to Adafruit IO
-print("Connecting to Adafruit IO...")
-feed_name = "messages"
-io.connect()
-io.add_feed_callback(feed_name, on_feed_msg)
-io.subscribe(feed_name)
-io.get(feed_name)
-
-# loop looking for messages
 while True:
-    # try to get updates from adafruit.io
-    try:
-        io.loop()
-    except (ValueError, RuntimeError) as e:
-        print("Failed to get data, retrying\n", e)
-        wifi.reset()
-        io.reconnect()
-        continue
+    current_message_index = handle_buttons(
+        magtag, messages, current_message_index)
 
-    # light up the screen if done in the dark
-    if magtag.peripherals.button_b_pressed:
-        magtag.peripherals.neopixel_disable = False
-        magtag.peripherals.neopixels.fill((255, 255, 255))
-    else:
-        magtag.peripherals.neopixel_disable = True
+    counter += 1
+
+    if (counter > 1000):
+        counter = 0
 
     time.sleep(0.1)
