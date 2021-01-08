@@ -1,10 +1,10 @@
+import alarm
 import board
 import time
 import ssl
 import wifi
 import socketpool
 import adafruit_requests
-import terminalio
 
 from adafruit_magtag.magtag import MagTag
 
@@ -47,6 +47,10 @@ auth_header = {
 }
 sleep_timer = 3000
 counter = 0
+button_a_alarm = alarm.pin.PinAlarm(pin=board.BUTTON_A, value=True)
+button_b_alarm = alarm.pin.PinAlarm(pin=board.BUTTON_B, value=True)
+button_c_alarm = alarm.pin.PinAlarm(pin=board.BUTTON_C, value=True)
+button_d_alarm = alarm.pin.PinAlarm(pin=board.BUTTON_D, value=True)
 
 
 print("Connecting to %s" % secrets["ssid"])
@@ -117,4 +121,9 @@ while True:
 
     time.sleep(0.1)
 
-print("No interaction detected, going to deep sleep")
+alarm.exit_and_deep_sleep_until_alarms(
+    button_a_alarm,
+    button_b_alarm,
+    button_c_alarm,
+    button_d_alarm
+)
