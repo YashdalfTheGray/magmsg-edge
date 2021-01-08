@@ -19,7 +19,18 @@ A fridge magnet that shows messages, written in CircuitPython with the ESP micro
 - [MCP73831 Datasheet](https://cdn.sparkfun.com/assets/learn_tutorials/6/9/5/MCP738312.pdf)
 - [3.7v/4.2v Battery Discharge Profile](https://cdn-learn.adafruit.com/assets/assets/000/000/979/original/components_tenergydischarge.gif?1447976645)
 
+### Buttons and alarms
+
+- `button_a_alarm = alarm.pin.PinAlarm(pin=board.D15, value=True)`
+  - this is specific to the Adafruit MagTag
+- [MagTag pinouts](https://learn.adafruit.com/adafruit-magtag/pinouts)
+
 ### Troubleshooting
 
 - [CircuitPython releases](https://github.com/adafruit/circuitpython/releases)
-- [Latest CircuitPython]
+- [Latest CircuitPython Bundle](https://github.com/adafruit/Adafruit_CircuitPython_Bundle)
+
+### Flashing new versions of CircuitPython
+
+- [Instructions](https://learn.adafruit.com/adafruit-magtag/circuitpython)
+- [MagTag CircuitPython builds](https://circuitpython.org/board/adafruit_magtag_2.9_grayscale/)
