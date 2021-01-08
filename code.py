@@ -78,9 +78,14 @@ pool = socketpool.SocketPool(wifi.radio)
 requests = adafruit_requests.Session(pool, ssl.create_default_context())
 
 
+def sortFunc(elem):
+    return elem["createdAt"]
+
+
 response = requests.request(
     "GET", secrets["server_address"], headers=auth_header)
 messages = response.json()
+messages.sort(key=sortFunc)
 print(messages)
 
 magtag = MagTag()
@@ -94,7 +99,7 @@ magtag.add_text(
     text_scale=1,
 )
 
-current_message_index = 0
+current_message_index = len(messages) - 1
 magtag.set_text(messages[current_message_index]["content"])
 
 buttons = magtag.peripherals.buttons
