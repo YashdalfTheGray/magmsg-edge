@@ -45,12 +45,10 @@ except ImportError:
 auth_header = {
     "Authorization": "Bearer " + secrets["server_token"]
 }
-sleep_timer = 3000
+sleep_timer = 1200
 counter = 0
-button_a_alarm = alarm.pin.PinAlarm(pin=board.BUTTON_A, value=True)
-button_b_alarm = alarm.pin.PinAlarm(pin=board.BUTTON_B, value=True)
-button_c_alarm = alarm.pin.PinAlarm(pin=board.BUTTON_C, value=True)
-button_d_alarm = alarm.pin.PinAlarm(pin=board.BUTTON_D, value=True)
+button_a_alarm = alarm.pin.PinAlarm(pin=board.D15, value=False)
+button_d_alarm = alarm.pin.PinAlarm(pin=board.D11, value=False)
 
 
 print("Connecting to %s" % secrets["ssid"])
@@ -123,7 +121,5 @@ while True:
 
 alarm.exit_and_deep_sleep_until_alarms(
     button_a_alarm,
-    button_b_alarm,
-    button_c_alarm,
     button_d_alarm
 )
