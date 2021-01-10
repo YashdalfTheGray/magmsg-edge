@@ -71,10 +71,10 @@ magtag = MagTag()
 magtag.add_text(
     text_font="Arial-18.bdf",
     text_position=(
-        20,
-        (magtag.graphics.display.height // 2) - 1,
+        14,
+        (magtag.graphics.display.height // 2),
     ),
-    text_scale=1,
+    text_wrap=20,
 )
 
 current_message_index = len(messages) - 1
