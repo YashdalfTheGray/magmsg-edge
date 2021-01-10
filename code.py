@@ -125,5 +125,8 @@ while True:
 
 alarm.exit_and_deep_sleep_until_alarms(
     button_a_alarm,
-    button_d_alarm
+    button_d_alarm,
+    alarm.time.TimeAlarm(
+        monotonic_time=time.monotonic() + SIX_HOURS_IN_SECONDS
+    )
 )
