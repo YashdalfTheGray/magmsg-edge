@@ -23,6 +23,9 @@ A fridge magnet that shows messages, written in CircuitPython with the ESP micro
 
 - `button_a_alarm = alarm.pin.PinAlarm(pin=board.D15, value=True)`
   - this is specific to the Adafruit MagTag
+- Time alarms should be set at the call to `alarms.exit_and_deep_sleep_until_alarms`
+- `alarm.time.TimeAlarm(monotonic_time=time.monotonic() + 60)`
+- [CircuitPython alarms](https://circuitpython.readthedocs.io/en/latest/shared-bindings/alarm/index.html)
 - [MagTag pinouts](https://learn.adafruit.com/adafruit-magtag/pinouts)
 
 ### Troubleshooting
