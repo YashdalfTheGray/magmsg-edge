@@ -8,6 +8,10 @@ import adafruit_requests
 
 from adafruit_magtag.magtag import MagTag
 
+TENTH_OF_A_SECOND = 0.1
+TWO_MINUTES_IN_TENTH_SECONDS = 1200
+SIX_HOURS_IN_SECONDS = 21600
+
 
 def sortFunc(elem):
     return elem["createdAt"]
@@ -45,7 +49,7 @@ except ImportError:
 auth_header = {
     "Authorization": "Bearer " + secrets["server_token"]
 }
-sleep_timer = 1200
+sleep_timer = TWO_MINUTES_IN_TENTH_SECONDS
 counter = 0
 button_a_alarm = alarm.pin.PinAlarm(pin=board.D15, value=False)
 button_d_alarm = alarm.pin.PinAlarm(pin=board.D11, value=False)
@@ -117,7 +121,7 @@ while True:
     if counter > sleep_timer:
         break
 
-    time.sleep(0.1)
+    time.sleep(TENTH_OF_A_SECOND)
 
 alarm.exit_and_deep_sleep_until_alarms(
     button_a_alarm,
